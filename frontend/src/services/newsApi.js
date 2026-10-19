@@ -1,9 +1,23 @@
-const rawUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
-// ตัด trailing slash ออกหากมี เพื่อป้องกัน URL ซ้ำ เช่น //api/news
-const API_URL = rawUrl.replace(/\/+$/, "");
+const getApiUrl = () => {
+  const configuredUrl = import.meta.env.VITE_API_URL;
+  const isLocalhostUrl =
+    configuredUrl &&
+    /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(?::\d+)?$/i.test(
+      configuredUrl,
+    );
+  const rawUrl =
+    configuredUrl && !(import.meta.env.PROD && isLocalhostUrl)
+      ? configuredUrl
+      : import.meta.env.PROD
+        ? ""
+        : "http://localhost:5000";
+  // ตัด trailing slash ออกหากมี เพื่อป้องกัน URL ซ้ำ เช่น //api/news
+  return rawUrl.replace(/\/+$/, "");
+};
 
 // 1. อ่านรายการข่าวทั้งหมด พร้อมค้นหาและกรอง (GET /api/news)
 export const fetchNews = async (searchTitle = "", category = "") => {
+  const apiUrl = getApiUrl();
   const params = new URLSearchParams();
   if (searchTitle && searchTitle.trim()) {
     params.append("title", searchTitle.trim());
@@ -13,7 +27,7 @@ export const fetchNews = async (searchTitle = "", category = "") => {
   }
 
   const queryStr = params.toString() ? `?${params.toString()}` : "";
-  const response = await fetch(`${API_URL}/api/news${queryStr}`);
+  const response = await fetch(`${apiUrl}/api/news${queryStr}`);
   
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
@@ -24,7 +38,7 @@ export const fetchNews = async (searchTitle = "", category = "") => {
 
 // 2. อ่านข่าวตาม ID (GET /api/news/:id)
 export const fetchNewsById = async (id) => {
-  const response = await fetch(`${API_URL}/api/news/${id}`);
+  const response = await fetch(`${getApiUrl()}/api/news/${id}`);
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
     throw new Error(err.message || "ไม่สามารถดึงข้อมูลรายละเอียดข่าวได้");
@@ -34,7 +48,7 @@ export const fetchNewsById = async (id) => {
 
 // 3. เพิ่มข่าวใหม่ (POST /api/news)
 export const createNews = async (newsData) => {
-  const response = await fetch(`${API_URL}/api/news`, {
+  const response = await fetch(`${getApiUrl()}/api/news`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(newsData),
@@ -49,7 +63,7 @@ export const createNews = async (newsData) => {
 
 // 4. แก้ไขข่าว (PUT /api/news/:id)
 export const updateNews = async (id, newsData) => {
-  const response = await fetch(`${API_URL}/api/news/${id}`, {
+  const response = await fetch(`${getApiUrl()}/api/news/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(newsData),
@@ -64,7 +78,7 @@ export const updateNews = async (id, newsData) => {
 
 // 5. ลบข่าว (DELETE /api/news/:id)
 export const deleteNews = async (id) => {
-  const response = await fetch(`${API_URL}/api/news/${id}`, {
+  const response = await fetch(`${getApiUrl()}/api/news/${id}`, {
     method: "DELETE",
   });
 

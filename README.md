@@ -109,25 +109,17 @@ npm run dev
 
 ## 🚀 6. การนำขึ้นใช้งานจริง (Deployment Guide)
 
-### **Backend บน Render:**
-1. สร้าง **Web Service** บน Render ชี้มาที่โฟลเดอร์ `backend`
-2. ตั้งค่าการ Build & Start:
-   - **Root Directory:** `backend`
-   - **Build Command:** `npm ci`
-   - **Start Command:** `npm start`
-3. ตั้งค่า Environment Variables บน Render:
-   - `PORT`: `5000`
+### **Deploy เว็บและ Backend บน Render:**
+เว็บและ API ให้บริการจาก URL เดียวกัน ผู้เข้าชมจึงไม่ต้องเชื่อมต่อ `localhost` หรือกำหนด `VITE_API_URL`
+1. สร้าง PostgreSQL บน Cloud แล้วเตรียม connection URL
+2. สร้าง **Web Service** จาก Git Repository โดยใช้ root ของ repository
+3. ตั้งค่าคำสั่ง:
+   - **Build Command:** `npm ci --prefix backend && npm ci --prefix frontend && npm run build --prefix frontend`
+   - **Start Command:** `npm start --prefix backend`
+4. ตั้งค่า Environment Variables:
    - `NODE_ENV`: `production`
-   - `DATABASE_URL`: `postgres://... (URL ของ PostgreSQL บน Cloud)`
-   - `ALLOWED_ORIGINS`: `https://your-frontend.vercel.app`
-
-### **Frontend บน Vercel:**
-1. เชื่อมต่อ Git Repository บน Vercel
-2. ตั้งค่า Framework: **Vite**
-3. ตั้งค่า Root Directory: `frontend`
-4. ตั้งค่า Environment Variable:
-   - `VITE_API_URL`: `https://your-backend-api.onrender.com`
-5. กด Deploy
+   - `DATABASE_URL`: connection URL ของ PostgreSQL บน Cloud
+5. Deploy แล้วแชร์ URL ของ Web Service ให้ผู้เข้าชม ระบบจะเปิดหน้าเว็บที่ URL หลัก และ API อยู่ที่ `/api/news`
 
 ---
 

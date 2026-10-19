@@ -1,12 +1,17 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const fs = require("fs");
+const path = require("path");
 const sequelize = require("./config/database");
 const seedNews = require("./seeders/newsSeeder");
 const newsRouter = require("./router/newsRouter");
 
 const app = express();
 const PORT = Number(process.env.PORT) || 5000;
+const frontendBuildPath = path.join(__dirname, "..", "frontend", "dist");
+const hasFrontendBuild =
+  process.env.NODE_ENV === "production" && fs.existsSync(frontendBuildPath);
 
 // กำหนด CORS Origins ให้รองรับทั้ง Localhost (Vite: 3000, 5173) และ Vercel Production
 const configuredOrigins = process.env.ALLOWED_ORIGINS
@@ -20,6 +25,10 @@ const configuredOrigins = process.env.ALLOWED_ORIGINS
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+if (hasFrontendBuild) {
+  app.use(express.static(frontendBuildPath));
+}
 
 app.use(
   cors({
@@ -64,6 +73,17 @@ app.get("/health", (req, res) => {
 
 // เส้นทาง API ข่าว /api/news
 app.use("/api", newsRouter);
+
+if (hasFrontendBuild) {
+  app.get("*", (req, res, next) => {
+    if (req.path === "/api" || req.path.startsWith("/api/")) {
+      next();
+      return;
+    }
+
+    res.sendFile(path.join(frontendBuildPath, "index.html"));
+  });
+}
 
 async function startServer() {
   try {
